@@ -47,21 +47,22 @@ public class DbManager
 
     public void ExecuteGet(string queryString)
     {
-        // using (OracleConnection connection = new OracleConnection(_connectionString))
-        // using (_connection)
-        // {
-        //     OracleCommand command = new OracleCommand(queryString, _connection);
-        //     command.Connection.Open();
-        //
-        //     OracleDataReader reader = command.ExecuteReader();
-        //     while (reader.Read())
-        //     {
-        //         reader.GetInt16(0);
-        //     }
-        //     
-        //     reader.Dispose();
-        //
-        //     command.Connection.Close();
-        // }
+        using (OracleConnection connection = new OracleConnection(ConnectionString))
+        {
+            OracleCommand command = new OracleCommand(queryString, connection);
+            command.Connection.Open();
+        
+            OracleDataReader reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                reader.GetInt16(0);
+                reader.GetString(1);
+                reader.GetDateTime(2);
+            }
+            
+            reader.Dispose();
+        
+            command.Connection.Close();
+        }
     }
 }
