@@ -1,24 +1,11 @@
 ﻿@page "/"
-@using gurukul.data
 
 <PageTitle>Home</PageTitle>
 
-<h1>@value</h1>
+<h1>@_value</h1>
 
 Welcome to your new app.
 
 @code {
-    string value = "Hello, ss!";
-
-    // string _query = "CREATE TABLE ankit (id INT, name VARCHAR(50))";
-    string _query = $"insert into ankit (id, name) values (1, 'Jolin')";
-    DbManager _dbManager = new();
-
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-        _dbManager.Execute(_query);
-    }
-
+    readonly string _value = "Hello world";
 }

@@ -2,7 +2,7 @@ using Oracle.ManagedDataAccess.Client;
 
 namespace gurukul.data;
 
-public class DbManager
+public static class DbManager
 {
     private const string Host = "localhost";
     private const string Port = "1521";
@@ -10,59 +10,41 @@ public class DbManager
     private const string Username = "gurukul";
     private const string Password = "gurukul";
 
-    private const string ConnectionString =
+    public const string ConnectionString =
         $"Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={Host})(PORT={Port}))(CONNECT_DATA=(SERVICE_NAME={ServiceName})));User Id={Username};Password={Password};";
-    
 
-    public void Execute(string queryString)
+
+    public static void Execute(string queryString)
     {
-        Console.WriteLine("Before Attempting");
-        Console.WriteLine(ConnectionString);
-
         try
         {
-            // using (OracleConnection connection = new OracleConnection(_connectionString))
-            using (OracleConnection _connection = new OracleConnection(ConnectionString))
-            {
-                Console.WriteLine("Inside Connection");
-                Console.WriteLine(queryString);
-                OracleCommand command = new OracleCommand(queryString, _connection);
-                Console.WriteLine("Command is set");
-                command.Connection.Open();
-                Console.WriteLine("Connection is Open");
-
-                command.ExecuteNonQuery();
-                Console.WriteLine("Query Executed");
-                command.Connection.Close();
-            }
+            using OracleConnection connection = new OracleConnection(ConnectionString);
+            OracleCommand command = new OracleCommand(queryString, connection);
+            command.Connection.Open();
+            command.ExecuteNonQuery();
         }
         catch (Exception e)
         {
-            Console.WriteLine("\n\n\n\n");
-            Console.WriteLine("Error Occured");
             Console.WriteLine(e.Message);
-            Console.WriteLine("\n\n\n\n");
         }
     }
 
-    public void ExecuteGet(string queryString)
+    public static void ExecuteGet(string queryString)
     {
-        using (OracleConnection connection = new OracleConnection(ConnectionString))
+        using OracleConnection connection = new OracleConnection(ConnectionString);
+        OracleCommand command = new OracleCommand(queryString, connection);
+        command.Connection.Open();
+
+        OracleDataReader reader = command.ExecuteReader();
+        while (reader.Read())
         {
-            OracleCommand command = new OracleCommand(queryString, connection);
-            command.Connection.Open();
-        
-            OracleDataReader reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                reader.GetInt16(0);
-                reader.GetString(1);
-                reader.GetDateTime(2);
-            }
-            
-            reader.Dispose();
-        
-            command.Connection.Close();
+            reader.GetInt16(0);
+            reader.GetString(1);
+            reader.GetDateTime(2);
         }
+
+        reader.Dispose();
+
+        command.Connection.Close();
     }
 }
