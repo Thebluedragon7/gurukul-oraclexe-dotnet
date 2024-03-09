@@ -123,7 +123,7 @@ public class EnrolmentDao : IModelDao<Enrolment>
     {
         try
         {
-            DbManager.Execute($"INSERT INTO ENROLMENT (ENROLMENT_ID, STUDENT_ID, COURSE_ID, ENROLMENT_DATE) " +
+            DbManager.Execute($"INSERT INTO ENROLMENT (ENROLMENT_ID, STUDENT_ID, COURSE_ID, ENROL_DATE) " +
                               $"VALUES ('{data.EnrolmentId}', '{data.StudentId}', '{data.CourseId}', '{data.EnrolmentDate}')");
         }
         catch (Exception e)
@@ -148,8 +148,7 @@ public class EnrolmentDao : IModelDao<Enrolment>
     {
         try
         {
-            DbManager.Execute($"UPDATE ENROLMENT SET STUDENT_ID = '{data.StudentId}', COURSE_ID = '{data.CourseId}', " +
-                              $"ENROLMENT_DATE = '{data.EnrolmentDate}' WHERE ENROLMENT_ID = '{id}'");
+            DbManager.Execute($"UPDATE ENROLMENT SET STUDENT_ID = '{data.StudentId}', COURSE_ID = '{data.CourseId}', ENROL_DATE = '{data.EnrolmentDate}' WHERE ENROLMENT_ID = '{id}'");
         }
         catch (Exception e)
         {
