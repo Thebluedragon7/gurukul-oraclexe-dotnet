@@ -28,23 +28,4 @@ public static class DbManager
             Console.WriteLine(e.Message);
         }
     }
-
-    public static void ExecuteGet(string queryString)
-    {
-        using OracleConnection connection = new OracleConnection(ConnectionString);
-        OracleCommand command = new OracleCommand(queryString, connection);
-        command.Connection.Open();
-
-        OracleDataReader reader = command.ExecuteReader();
-        while (reader.Read())
-        {
-            reader.GetInt16(0);
-            reader.GetString(1);
-            reader.GetDateTime(2);
-        }
-
-        reader.Dispose();
-
-        command.Connection.Close();
-    }
 }
