@@ -1,3 +1,40 @@
 html, body {
     font-family: 'Raleway', Helvetica, Arial, sans-serif;
 }
+
+.action-btn, .action-btn:hover, .action-btn:active {
+    padding: 0;
+    background: none !important;
+    border: none;
+}
+
+.action-btn:not(:last-child) {
+    margin-right: 0.5rem;
+}
+
+.action-btn.edit {
+    color: var(--bs-primary) !important;
+}
+
+.action-btn.delete {
+    color: var(--bs-danger) !important;
+}
+
+.action-btn.add {
+    color: var(--bs-primary) !important;
+}
+
+.search-field {
+    padding: 0.25rem 0.75rem;
+}
+
+.sort-drop-down, .sort-drop-down:hover, .sort-drop-down:active {
+    background: none;
+    color: var(--bs-primary);
+    padding: 0;
+    border: none;
+}
+
+.form-input-field:not(:last-child) {
+    margin-bottom: 0.75rem;
+}
