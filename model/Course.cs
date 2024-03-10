@@ -2,7 +2,9 @@ namespace gurukul.model;
 
 public class Course
 {
-    public string CourseId;
-    public string CourseTitle;
-    public string CourseDescription;
+    public string CourseId { get; set; }
+
+    public string CourseTitle { get; set; }
+
+    public string CourseDescription { get; set; }
 }

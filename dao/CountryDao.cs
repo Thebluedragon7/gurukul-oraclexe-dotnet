@@ -131,7 +131,7 @@ public class CountryDao : IModelDao<Country>
         try
         {
             DbManager.Execute(
-                $"INSERT INTO COUNTRY (COUNTRY_ID, COUNTRY_NAME, COUNTRY_ZIP_CODE) VALUES ('{Guid.NewGuid()}', '{data.CountryName}', '{data.CountryZipCode}')");
+                $"INSERT INTO COUNTRY (COUNTRY_ID, COUNTRY_NAME, COUNTRY_ZIPCODE) VALUES ('{Guid.NewGuid()}', '{data.CountryName}', '{data.CountryZipCode}')");
         }
         catch (Exception e)
         {
@@ -156,7 +156,7 @@ public class CountryDao : IModelDao<Country>
         try
         {
             DbManager.Execute(
-                $"UPDATE COUNTRY SET COUNTRY_NAME = '{data.CountryName}', COUNTRY_ZIP_CODE = '{data.CountryZipCode}' WHERE COUNTRY_ID = '{id}'");
+                $"UPDATE COUNTRY SET COUNTRY_NAME = '{data.CountryName}', COUNTRY_ZIPCODE = '{data.CountryZipCode}' WHERE COUNTRY_ID = '{id}'");
         }
         catch (Exception e)
         {
