@@ -1,0 +1,222 @@
+@page "/lesson"
+@using gurukul.Models
+@using gurukul.Utils
+@using gurukul.Dao
+@inject NavigationManager NavigationManager
+
+<PageTitle>Dashboard | Lesson</PageTitle>
+
+<div class="d-flex flex-row justify-content-between">
+    <h3 class="text-uppercase fw-bold">Lesson</h3>
+    <AddButton Name="Lesson" AddModalId="@_addModalId"/>
+</div>
+<div class="d-flex flex-row justify-content-between align-items-xl-center my-3">
+    <InputText class="border rounded-pill search-field" type="search" @bind-Value="_searchText" name="search-items" aria-controls="dataTable" placeholder="Search..."/>
+    <div>
+        <label class="form-label" for="sort-by">Sort By:&nbsp;</label>
+        <InputSelect id="sort-by" class="sort-drop-down" @bind-Value="_sortBy" required="">
+            @foreach (var item in _sortByOptions)
+            {
+                <option value="@item.Key">@item.Value</option>
+            }
+        </InputSelect>
+    </div>
+</div>
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Lesson ID</th>
+            <th>Lesson Number</th>
+            <th>Course</th>
+            <th>Course Content</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (Lesson lesson in filteredItems)
+        {
+            <tr>
+                <td>@lesson.CourseId</td>
+                <td>@lesson.LessonNumber</td>
+                @* <td>@_courseDao.GetById(lesson.CourseId).CourseTitle</td> *@
+                <td>@lesson.CourseId</td>
+                <td>@lesson.LessonContent</td>
+                <td>
+                    <div>
+                        <EditIcon UpdateModalId="@_updateModalId" OnUpdateClicked="() => HandleUpdate(lesson)"/>
+                        @* <DeleteButton DeleteModalId="@_deleteModalId" OnDeleteClicked="() => HandleDelete(lesson)"/> *@
+                    </div>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@* Add Lesson Form *@
+<Modal Name="Lesson" ModalId="@_addModalId" FormId="add-lesson-form" Type="ModalType.CREATE">
+    <EditForm Model="@lessonAdd" OnValidSubmit="@HandleAddSubmit" id="add-lesson-form">
+        <div class="form-input-field">
+            <label class="form-label" for="lesson-no-add">Lesson Number</label><InputNumber class="form-control" type="number" id="lesson-no-add" @bind-Value="@lessonAdd.LessonNumber" required="" name="lessonNumber" placeholder="Lesson Number"/>
+        </div>
+        <div class="form-input-field">
+            <label class="form-label" for="lesson-course-add">Course</label>
+            <InputSelect class="form-select" id="lesson-course-add" readonly="" name="lessonCourse" @bind-Value="@lessonAdd.CourseId">
+                @foreach (Course course in GetCourses())
+                {
+                    <option value="@course.CourseId">@course.CourseTitle</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="form-input-field">
+            <label class="form-label" for="lesson-content-add">File</label><InputFile class="form-control" type="file" OnChange="@HandleFileChanged" id="lesson-content-add" name="lessonContent" required=""/>
+        </div>
+    </EditForm>
+</Modal>
+
+@* Delete Lesson Modal *@
+<DeleteModal Name="Lesson" ModalId="@_deleteModalId" OnConfirm="HandleDeleteSubmit"/>
+
+@* Update Lesson Modal *@
+<Modal Name="Lesson" Type="ModalType.UPDATE" FormId="update-lesson-form" ModalId="@_updateModalId">
+    <EditForm Model="@lessonUpdate" OnValidSubmit="@HandleUpdateSubmit" id="update-lesson-form">
+        <div class="form-input-field">
+            <label class="form-label" for="lesson-no-update">Lesson Number</label><input class="form-control" type="number" id="lesson-no-update" required="" name="lessonNumber" placeholder="Lesson Number">
+        </div>
+        <div class="form-input-field">
+            <label class="form-label" for="lesson-course-update">Course</label>
+            <select class="form-select" id="lesson-course-update" readonly="" name="lessonCourse">
+                <option value="0" selected="">Course 1</option>
+                <option value="1">Course 2</option>
+                <option value="2">Course 3</option>
+            </select>
+        </div>
+        <div class="form-input-field">
+            <label class="form-label" for="lesson-content-update">File</label><input class="form-control" type="file" id="lesson-content-update" name="lessonContent" required="">
+        </div>
+    </EditForm>
+</Modal>
+
+@code {
+    private Lesson lessonAdd = new Lesson();
+    private Lesson lessonUpdate = new Lesson();
+    private Lesson lessonDelete = new Lesson();
+    private readonly string _updateModalId = "update-lesson-form";
+    private readonly string _deleteModalId = "delete-lesson-form";
+    private readonly string _addModalId = "add-lesson-form";
+    private string _searchText = "";
+    private string _errorText = "";
+    private string _sortBy = "LESS_NO_ASC";
+    Dictionary<string, string> _sortByOptions;
+
+    private CourseDao _courseDao;
+    private LessonDao _lessonDao;
+
+    private string fileUrl;
+    private string uploadedFileName;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _courseDao = new CourseDao();
+        _lessonDao = new LessonDao();
+
+        LoadSortByOptions();
+    }
+
+    private void LoadSortByOptions()
+    {
+        _sortByOptions = new Dictionary<string, string>();
+        _sortByOptions.Add("LESS_NO_ASC", "Lesson Number Ascending");
+        _sortByOptions.Add("LESS_NO_DESC", "Lesson Number Descending");
+    }
+
+    private List<Course> GetCourses()
+    {
+        return _courseDao.GetList();
+    }
+
+    private async Task HandleFileChanged(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+
+        // Check if a file was selected
+        if (file != null)
+        {
+            // Generate a unique file name (you may want to use GUID or another method)
+            uploadedFileName = $"{Guid.NewGuid().ToString()}{Path.GetExtension(file.Name)}";
+
+            // Save the file to a location on the server
+            var path = Path.Combine("wwwroot", "uploads", uploadedFileName);
+            using (var stream = new FileStream(path, FileMode.Create))
+            {
+                await file.OpenReadStream().CopyToAsync(stream);
+            }
+
+            // Set the image URL to access the uploaded file
+            fileUrl = $"{NavigationManager.BaseUri}uploads/{uploadedFileName}";
+            Console.WriteLine(fileUrl);
+            lessonAdd.LessonContent = fileUrl;
+        }
+    }
+
+    private List<Lesson> filteredItems
+    {
+        get
+        {
+            List<Lesson> filtered;
+
+            // if (string.IsNullOrWhiteSpace(_searchText))
+            // {
+            //     filtered = _lessonDao.GetList("LESSON_NUMBER", _sortBy == "LESS_NO_ASC" ? SortByEnum.ASCENDING : SortByEnum.DESCENDING);
+            // }
+            // else
+            // {
+            //     filtered = _lessonDao.GetList(_searchText, "LESSON_NUMBER", "LESSON_NUMBER", _sortBy == "LESS_NO_ASC" ? SortByEnum.ASCENDING : SortByEnum.DESCENDING);
+            // }
+
+            filtered = new List<Lesson>();
+
+            Lesson l = new Lesson();
+            l.LessonId = "3frgtge";
+            l.CourseId = "3frgtge";
+            l.LessonContent = "3frgtge";
+            l.LessonNumber = 1;
+
+
+            filtered.Add(l);
+
+            return filtered;
+        }
+    }
+
+    private void HandleAdd()
+    {
+    }
+
+    private void HandleUpdate(Lesson lesson)
+    {
+        Console.WriteLine("CLicked!");
+        _errorText = "Hello";
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+
+    private void HandleDelete(Lesson lesson)
+    {
+    }
+
+    private void HandleAddSubmit()
+    {
+        Console.WriteLine("Hello world!");
+    }
+
+    private void HandleUpdateSubmit()
+    {
+    }
+
+    private void HandleDeleteSubmit()
+    {
+    }
+
+}

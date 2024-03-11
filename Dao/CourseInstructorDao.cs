@@ -1,9 +1,9 @@
-using gurukul.data;
 using gurukul.interfaces;
-using gurukul.model;
+using gurukul.Models;
+using gurukul.Utils;
 using Oracle.ManagedDataAccess.Client;
 
-namespace gurukul.dao;
+namespace gurukul.Dao;
 
 public class CourseInstructorDao : IModelDao<CourseInstructor>
 {

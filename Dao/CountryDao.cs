@@ -1,9 +1,9 @@
-using gurukul.data;
 using gurukul.interfaces;
-using gurukul.model;
+using gurukul.Models;
+using gurukul.Utils;
 using Oracle.ManagedDataAccess.Client;
 
-namespace gurukul.dao;
+namespace gurukul.Dao;
 
 public class CountryDao : IModelDao<Country>
 {
@@ -131,7 +131,7 @@ public class CountryDao : IModelDao<Country>
         try
         {
             DbManager.Execute(
-                $"INSERT INTO COUNTRY (COUNTRY_ID, COUNTRY_NAME, COUNTRY_ZIPCODE) VALUES ('{Guid.NewGuid()}', '{data.CountryName}', '{data.CountryZipCode}')");
+                $"INSERT INTO COUNTRY (COUNTRY_ID, COUNTRY_NAME, COUNTRY_ZIPCODE) VALUES ('{data.CountryId}', '{data.CountryName}', '{data.CountryZipCode}')");
         }
         catch (Exception e)
         {

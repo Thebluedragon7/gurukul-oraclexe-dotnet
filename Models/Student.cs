@@ -1,4 +1,4 @@
-namespace gurukul.model;
+namespace gurukul.Models;
 
 public class Student
 {

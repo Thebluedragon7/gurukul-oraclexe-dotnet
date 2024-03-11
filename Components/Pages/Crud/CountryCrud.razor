@@ -1,0 +1,183 @@
+@page "/country"
+@using gurukul.Utils
+@using gurukul.Dao
+@using gurukul.interfaces
+@using gurukul.Models
+@using System.Diagnostics
+
+@inject ILoggerService LoggerService
+
+<PageTitle>Dashboard | Country</PageTitle>
+
+<div class="d-flex flex-row justify-content-between">
+    <h3 class="text-uppercase fw-bold">Lesson</h3>
+    <AddButton Name="Lesson" AddModalId="@_addModalId"/>
+</div>
+
+<div class="d-flex flex-row justify-content-between align-items-xl-center my-3">
+    <InputText class="border rounded-pill search-field" type="search" @bind-Value="_searchText" name="search-items" aria-controls="dataTable" placeholder="Search..."/>
+    <div>
+        <label class="form-label" for="sort-by">Sort By:&nbsp;</label>
+        <InputSelect id="sort-by" class="sort-drop-down" @bind-Value="_sortBy" required="">
+            @foreach (var item in _sortByOptions)
+            {
+                <option value="@item.Key">@item.Value</option>
+            }
+        </InputSelect>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Country ID</th>
+            <th>Country Name</th>
+            <th>Country Zip Code</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (Country country in _countries)
+        {
+            <tr>
+                <td>@country.CountryId</td>
+                <td>@country.CountryName</td>
+                <td>@country.CountryZipCode</td>
+                <td>
+                    <div>
+                        <button class="btn btn-primary action-btn edit" type="button" data-bs-target="#@_updateModalId" data-bs-toggle="modal" @onclick="() => HandleUpdate(country)">
+                            <EditIcon/>
+                        </button>
+                        <button class="btn btn-primary action-btn delete" type="button" data-bs-target="#@_deleteModalId" data-bs-toggle="modal" @onclick="() => HandleDelete(country)">
+                            <DeleteIcon/>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<Modal Name="Country" Type="ModalType.CREATE" FormId="@_addFormId" ModalId="@_addModalId">
+    <EditForm Model="@CountryAdd" OnValidSubmit="@HandleAddSubmit" id="@_addFormId" FormName="@_addFormId">
+        <div class="form-input-field">
+            <label class="form-label" for="country-name-add">Country Name</label>
+            @* <InputText class="form-control" id="country-name-add" @bind-Value="@CountryAdd.CountryName" required="" placeholder="Country Name"/> *@
+            <input type="text" class="form-control" id="country-name-add" value="@CountryAdd.CountryName" required="" placeholder="Country Name"/>
+        </div>
+        <div class="form-input-field">
+            <label class="form-label" for="country-zip-add">Country Zip Code</label>
+            @* <InputNumber class="form-control" id="country-zip-add" @bind-Value="@CountryAdd.CountryZipCode" required="" placeholder="Country Zip Code" min="0"/> *@
+            <input type="number" class="form-control" id="country-zip-add" value="@CountryAdd.CountryZipCode" required="" placeholder="Country Zip Code" min="0"/>
+        </div>
+    </EditForm>
+</Modal>
+
+<DeleteModal Name="@_countryDelete.CountryName" ModalId="@_deleteModalId" OnConfirm="HandleDeleteSubmit"/>
+
+<Modal Name="Country" Type="ModalType.UPDATE" FormId="@_updateFormId" ModalId="@_updateModalId">
+    <EditForm Model="@_countryUpdate" OnValidSubmit="@HandleUpdateSubmit" id="@_updateFormId" FormName="@_updateFormId">
+        <div class="form-input-field">
+            <label class="form-label" for="country-name-add">Country Name</label>
+            <InputText class="form-control" id="country-name-add" @bind-Value="@_countryUpdate.CountryName" required="" placeholder="Country Name"/>
+            @* <input type="text" class="form-control" id="country-name-add" value="@_countryUpdate.CountryName" required="" placeholder="Country Name"/> *@
+        </div>
+        <div class="form-input-field">
+            <label class="form-label" for="country-zip-add">Country Zip Code</label>
+            <InputNumber class="form-control" id="country-zip-add" @bind-Value="@_countryUpdate.CountryZipCode" required="" placeholder="Country Zip Code" min="0"/>
+            @* <input type="number" class="form-control" id="country-zip-add" value="@_countryUpdate.CountryZipCode" required="" placeholder="Country Zip Code" min="0"/> *@
+        </div>
+    </EditForm>
+</Modal>
+
+@code {
+
+    // Modal Ids
+    private readonly string _updateModalId = "update-country-modal";
+    private readonly string _deleteModalId = "delete-country-modal";
+    private readonly string _addModalId = "add-country-modal";
+
+    // Form Ids
+    private readonly string _addFormId = "add-country-form";
+    private readonly string _updateFormId = "update-country-form";
+
+    // Sort and Search
+    private string _searchText = "";
+    private string _errorText = "";
+    private string _sortBy = "LESS_NO_ASC";
+    Dictionary<string, string> _sortByOptions;
+
+    // Dao Instances
+    private readonly CountryDao _countryDao = new CountryDao();
+
+    // Crud Instances
+    private Country CountryAdd;
+    private Country _countryUpdate = new Country();
+    private Country _countryDelete = new Country();
+    private List<Country> _countries = new List<Country>();
+
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        CountryAdd = new Country();
+
+        _countries = _countryDao.GetList("COUNTRY_NAME", SortByEnum.ASCENDING);
+        LoadSortByOptions();
+    }
+
+    private void LoadSortByOptions()
+    {
+        _sortByOptions = new Dictionary<string, string>();
+        _sortByOptions.Add("LESS_NO_ASC", "Lesson Number Ascending");
+        _sortByOptions.Add("LESS_NO_DESC", "Lesson Number Descending");
+    }
+
+    private void HandleUpdate(Country country)
+    {
+        _countryUpdate = country;
+    }
+
+    private void HandleDelete(Country country)
+    {
+        _countryDelete = country;
+
+        LoggerService.Log("Clicked - Delete (selected)");
+        LoggerService.Log(country.CountryId);
+        LoggerService.Log("Clicked - Delete (Refs)");
+        LoggerService.Log(_countryDelete.CountryId);
+        StateHasChanged();
+    }
+
+    private void HandleAddSubmit()
+    {
+        LoggerService.Log("Country Add Submit Clicked");
+
+        CountryAdd.CountryId = Guid.NewGuid().ToString();
+        CountryAdd.CountryName = "UK";
+        CountryAdd.CountryZipCode = 456;
+        LoggerService.Log(CountryAdd.CountryId);
+        LoggerService.Log(CountryAdd.CountryName);
+        LoggerService.Log(CountryAdd.CountryZipCode.ToString());
+
+        _countryDao.Create(CountryAdd);
+
+        CountryAdd = new Country();
+    }
+
+    private void HandleUpdateSubmit()
+    {
+        _countryDao.UpdateById(_countryUpdate.CountryId, _countryUpdate);
+    }
+
+    private void HandleDeleteSubmit()
+    {
+        LoggerService.Log("Deleting");
+        LoggerService.Log(_countryDelete.CountryId);
+        _countryDao.DeleteById(_countryDelete.CountryId);
+    }
+
+}

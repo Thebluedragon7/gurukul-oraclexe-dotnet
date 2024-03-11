@@ -1,6 +1,6 @@
 using Oracle.ManagedDataAccess.Client;
 
-namespace gurukul.data;
+namespace gurukul.Utils;
 
 public static class DbManager
 {
